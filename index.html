@@ -208,7 +208,9 @@
     <div id="profilePage" style="display: none;">
         <div class="forum-header-actions">
             <h1>Личный профиль</h1>
-            <button class="btn-blue" id="editProfileBtn" onclick="openModal('editProfileModal')">✏️ Редактировать профиль</button>
+            <div>
+                <button class="btn-blue" id="editProfileBtn" onclick="openModal('editProfileModal')">✏️ Редактировать профиль</button>
+            </div>
         </div>
 
         <div class="profile-card">
@@ -233,7 +235,7 @@
             <form id="loginForm">
                 <div class="form-group">
                     <label>Ваш Никнейм</label>
-                    <input type="text" id="loginNick" placeholder="Vlada_Wong" required>
+                    <input type="text" id="loginNick" placeholder="Vlad_Wong" required>
                 </div>
                 <div class="form-group">
                     <label>Пароль</label>
@@ -252,7 +254,7 @@
             <form id="regForm">
                 <div class="form-group">
                     <label>Придумайте Никнейм</label>
-                    <input type="text" id="regNick" placeholder="Vlada_Wong" required>
+                    <input type="text" id="regNick" placeholder="Vlad_Wong" required>
                 </div>
                 <div class="form-group">
                     <label>Придумайте Пароль</label>
@@ -338,6 +340,7 @@
     let topics = JSON.parse(localStorage.getItem('forum_topics')) || [];
     let currentTopicId = null;
     let editingPostIndex = null;
+    let viewedProfileNick = null;
 
     function saveAll() {
         localStorage.setItem('forum_topics', JSON.stringify(topics));
@@ -345,22 +348,36 @@
         localStorage.setItem('forum_current_user', JSON.stringify(currentUser));
     }
 
-    function isVlada(nick) {
-        return nick && nick.toLowerCase() === 'vlada_wong';
+    // ТІЛЬКИ Vlad_Wong є адміном
+    function isVlad(nick) {
+        return nick && nick.toLowerCase() === 'vlad_wong';
     }
 
     function isAdmin() {
-        if (!currentUser) return false;
-        if (isVlada(currentUser)) return true;
-        return profiles[currentUser] && profiles[currentUser].role === 'admin';
+        return isVlad(currentUser);
+    }
+
+    function syncUserRole() {
+        if (currentUser && profiles[currentUser]) {
+            if (isVlad(currentUser)) {
+                profiles[currentUser].role = 'admin';
+                profiles[currentUser].rank = 'АДМИНИСТРАТОР';
+            } else {
+                profiles[currentUser].role = 'user';
+                if (profiles[currentUser].rank === 'АДМИНИСТРАТОР') {
+                    profiles[currentUser].rank = 'Инструктор';
+                }
+            }
+        }
     }
 
     function renderUserNav() {
+        syncUserRole();
         const nav = document.getElementById('userNav');
         if (currentUser) {
             const userProf = profiles[currentUser] || { rank: "Инструктор", avatar: "" };
             const avatarSrc = userProf.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser}`;
-            const nickClass = isVlada(currentUser) ? 'vip-nick' : '';
+            const nickClass = isVlad(currentUser) ? 'vip-nick' : '';
 
             nav.innerHTML = `
                 <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="showProfilePage('${currentUser}')">
@@ -384,7 +401,7 @@
         }
 
         topics.forEach(topic => {
-            const nickClass = isVlada(topic.authorNick) ? 'vip-nick' : '';
+            const nickClass = isVlad(topic.authorNick) ? 'vip-nick' : '';
             const row = document.createElement('div');
             row.className = 'topic-row';
             row.onclick = () => openTopic(topic.id);
@@ -425,8 +442,8 @@
             };
 
             const avatarSrc = prof.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${post.authorNick}`;
-            const nickClass = isVlada(post.authorNick) ? 'vip-nick' : '';
-            const displayRank = prof.rank || 'Инструктор';
+            const nickClass = isVlad(post.authorNick) ? 'vip-nick' : '';
+            const displayRank = isVlad(post.authorNick) ? 'АДМИНИСТРАТОР' : (prof.rank || 'Инструктор');
 
             const canEdit = currentUser && (currentUser === post.authorNick || isAdmin());
             const editBtn = canEdit ? `<button class="btn-edit" onclick="openEditPostModal(${index})">✏️ Редактировать</button>` : '';
@@ -511,8 +528,11 @@
     }
 
     function showProfilePage(nick) {
+        viewedProfileNick = nick;
+        const isUserVlad = isVlad(nick);
+
         const prof = profiles[nick] || {
-            rank: "Инструктор",
+            rank: isUserVlad ? "АДМИНИСТРАТОР" : "Инструктор",
             avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`,
             status: "Статус отсутствует",
             regDate: "Сегодня"
@@ -524,9 +544,9 @@
 
         const profNickElem = document.getElementById('profNick');
         profNickElem.innerText = nick;
-        profNickElem.className = isVlada(nick) ? 'vip-nick' : '';
+        profNickElem.className = isUserVlad ? 'vip-nick' : '';
 
-        document.getElementById('profRank').innerText = prof.rank || "Инструктор";
+        document.getElementById('profRank').innerText = isUserVlad ? "АДМИНИСТРАТОР" : (prof.rank || "Инструктор");
         document.getElementById('profStatus').innerText = `"${prof.status || 'Статус отсутствует'}"`;
         document.getElementById('profRegDate').innerText = prof.regDate || "Сегодня";
         document.getElementById('profImg').src = prof.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`;
@@ -570,12 +590,12 @@
             return;
         }
 
-        const isVladaUser = isVlada(nick);
+        const isVladUser = isVlad(nick);
 
         profiles[nick] = {
             password: pass,
-            role: isVladaUser ? 'admin' : 'user',
-            rank: 'Инструктор',
+            role: isVladUser ? 'admin' : 'user',
+            rank: isVladUser ? 'АДМИНИСТРАТОР' : 'Инструктор',
             avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`,
             status: 'Участник форума',
             regDate: new Date().toLocaleDateString()
@@ -586,7 +606,7 @@
         renderUserNav();
         closeModal('authModal');
         this.reset();
-        alert("Регистрация успешна!");
+        alert("Регистрация успешная!");
     });
 
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -604,14 +624,8 @@
             return;
         }
 
-        if (isVlada(nick)) {
-            profiles[nick].role = 'admin';
-            if (profiles[nick].rank === 'АДМИНИСТРАТОР') {
-                profiles[nick].rank = 'Инструктор';
-            }
-        }
-
         currentUser = nick;
+        syncUserRole();
         saveAll();
         renderUserNav();
         closeModal('authModal');
@@ -676,7 +690,7 @@
         const avatar = document.getElementById('editAvatar').value;
         const status = document.getElementById('editStatus').value;
 
-        if (rank) profiles[currentUser].rank = rank;
+        if (rank && !isVlad(currentUser)) profiles[currentUser].rank = rank;
         if (avatar) profiles[currentUser].avatar = avatar;
         if (status) profiles[currentUser].status = status;
 
