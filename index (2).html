@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форум Инструкторов</title>
+    <style>
+        :root {
+            --bg-dark: #121417;
+            --bg-card: #1b1e23;
+            --bg-header: #16181d;
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --accent-red: #ef4444;
+            --accent-red-hover: #dc2626;
+            --text-main: #e1e1e1;
+            --text-muted: #7f8c8d;
+            --vip-cyan: #38bdf8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0; padding: 0;
+        }
+
+        header {
+            background-color: var(--bg-header);
+            border-bottom: 3px solid var(--accent-blue);
+            padding: 15px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .header-content {
+            max-width: 1100px; margin: 0 auto; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .logo {
+            font-size: 22px; font-weight: bold; color: #fff;
+            text-transform: uppercase; cursor: pointer;
+        }
+        .logo span { color: var(--accent-blue); }
+
+        .user-nav { display: flex; align-items: center; gap: 15px; }
+
+        .user-nav-btn {
+            background: none; border: 1px solid var(--accent-blue); color: #fff;
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;
+        }
+        .user-nav-btn:hover { background: var(--accent-blue); }
+
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+
+        .breadcrumb { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+        .breadcrumb a { color: var(--accent-blue); text-decoration: none; cursor: pointer; }
+
+        .forum-header-actions {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+
+        .btn-blue {
+            background: var(--accent-blue); color: #fff; padding: 10px 20px;
+            border-radius: 4px; border: none; font-weight: bold; cursor: pointer;
+            transition: 0.2s; text-transform: uppercase; font-size: 12px;
+        }
+        .btn-blue:hover { background: var(--accent-blue-hover); }
+
+        .btn-edit {
+            background: #3b82f6; color: #fff; padding: 5px 10px;
+            border-radius: 4px; border: none; font-weight: bold; cursor: pointer;
+            transition: 0.2s; font-size: 11px; text-transform: uppercase; margin-right: 5px;
+        }
+        .btn-edit:hover { background: #2563eb; }
+
+        .btn-danger {
+            background: var(--accent-red); color: #fff; padding: 5px 10px;
+            border-radius: 4px; border: none; font-weight: bold; cursor: pointer;
+            transition: 0.2s; font-size: 11px; text-transform: uppercase;
+        }
+        .btn-danger:hover { background: var(--accent-red-hover); }
+
+        .forum-block {
+            background: var(--bg-card); border: 1px solid #23272d;
+            border-radius: 5px; overflow: hidden; margin-bottom: 25px;
+        }
+
+        .forum-block-header {
+            background: #21252b; padding: 12px 20px; font-size: 14px;
+            font-weight: bold; color: var(--accent-blue); border-bottom: 1px solid #2a2f36;
+            text-transform: uppercase;
+        }
+
+        .topic-row {
+            display: flex; align-items: center; padding: 15px 20px;
+            border-bottom: 1px solid #23272d; transition: 0.2s; cursor: pointer;
+        }
+        .topic-row:hover { background: #21252b; }
+        .topic-icon { font-size: 20px; margin-right: 15px; color: var(--accent-blue); }
+        .topic-main { flex-grow: 1; }
+        .topic-title { font-size: 15px; font-weight: 600; color: #fff; text-decoration: none; display: block; margin-bottom: 5px; }
+        .topic-meta { font-size: 12px; color: var(--text-muted); }
+
+        .vip-nick {
+            color: var(--vip-cyan) !important;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+        }
+
+        .post-card {
+            background: var(--bg-card); border: 1px solid #23272d;
+            border-radius: 5px; margin-bottom: 15px; display: flex;
+        }
+        .post-author {
+            width: 180px; background: #171a1f; padding: 15px;
+            border-right: 1px solid #23272d; text-align: center; flex-shrink: 0;
+        }
+        .post-author .avatar {
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 2px solid var(--accent-blue); margin-bottom: 10px; object-fit: cover;
+        }
+        .rank-badge {
+            font-size: 11px; background: #2a323d; color: var(--accent-blue);
+            padding: 3px 8px; border-radius: 10px; display: inline-block; margin-top: 5px;
+        }
+        .post-content { padding: 20px; flex-grow: 1; white-space: pre-wrap; line-height: 1.5; }
+        .post-header {
+            border-bottom: 1px solid #23272d; padding-bottom: 10px;
+            margin-bottom: 15px; font-size: 12px; color: var(--text-muted);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .profile-card {
+            background: var(--bg-card); border: 1px solid #23272d;
+            border-radius: 5px; padding: 25px; display: flex; gap: 25px;
+        }
+        .profile-avatar-big {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 3px solid var(--accent-blue); object-fit: cover;
+        }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: var(--bg-card); width: 100%; max-width: 500px;
+            padding: 25px; border-radius: 5px; border: 1px solid var(--accent-blue);
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-muted); }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 10px; background: #121417; border: 1px solid #2c3e50; color: #fff; border-radius: 4px; box-sizing: border-box;
+        }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { background: #7f8c8d; color: #fff; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .auth-switch { font-size: 12px; color: var(--accent-blue); cursor: pointer; margin-top: 10px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <div class="logo" onclick="showMainPage()">INSTRUCTOR <span>PORTAL</span></div>
+        <div class="user-nav" id="userNav"></div>
+    </div>
+</header>
+
+<div class="container">
+    <div class="breadcrumb">
+        <a onclick="showMainPage()">Главная</a> &gt; <span id="breadcrumbCurrent">Раздел Инструкторов</span>
+    </div>
+
+    <div id="mainPage">
+        <div class="forum-header-actions">
+            <h1 class="forum-title">Центр Инструкторов</h1>
+            <button class="btn-blue" onclick="openModal('topicModal')">+ Создать тему</button>
+        </div>
+        <div class="forum-block">
+            <div class="forum-block-header">💬 Список тем</div>
+            <div id="topicsContainer"></div>
+        </div>
+    </div>
+
+    <div id="topicPage" style="display: none;">
+        <div class="forum-header-actions">
+            <h1 class="forum-title" id="viewTopicTitle">Заголовок темы</h1>
+            <div>
+                <button class="btn-danger" id="deleteTopicBtn" style="display:none; margin-right: 10px;" onclick="deleteCurrentTopic()">🗑 Удалить тему</button>
+                <button class="btn-blue" onclick="showMainPage()">← Назад к списку</button>
+            </div>
+        </div>
+
+        <div id="postsContainer"></div>
+
+        <div class="forum-block" style="padding: 20px;">
+            <h3 style="margin-top: 0; color: var(--accent-blue);">Ответить в теме</h3>
+            <form id="replyForm">
+                <div class="form-group">
+                    <textarea id="replyText" rows="4" placeholder="Напишите ваш ответ..." required></textarea>
+                </div>
+                <button type="submit" class="btn-blue">Опубликовать ответ</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="profilePage" style="display: none;">
+        <div class="forum-header-actions">
+            <h1>Личный профиль</h1>
+            <button class="btn-blue" id="editProfileBtn" onclick="openModal('editProfileModal')">✏️ Редактировать профиль</button>
+        </div>
+
+        <div class="profile-card">
+            <img id="profImg" src="" class="profile-avatar-big">
+            <div style="flex-grow: 1;">
+                <h2 id="profNick" style="margin: 0 0 5px 0;">Никнейм</h2>
+                <div class="rank-badge" id="profRank">Инструктор</div>
+                <p id="profStatus" style="color: var(--text-muted); font-style: italic; margin-top: 15px;">"Статус отсутствует"</p>
+                <hr style="border-color: #23272d; margin: 15px 0;">
+                <div style="font-size: 13px; color: var(--text-muted);">
+                    <div>Зарегистрирован: <span id="profRegDate" style="color: #fff;">-</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="authModal">
+    <div class="modal-content">
+        <div id="loginBlock">
+            <h3 style="color: var(--accent-blue); margin-top: 0;">Вход в аккаунт</h3>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Ваш Никнейм</label>
+                    <input type="text" id="loginNick" placeholder="Vlada_Wong" required>
+                </div>
+                <div class="form-group">
+                    <label>Пароль</label>
+                    <input type="password" id="loginPass" placeholder="••••••••" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal('authModal')">Отмена</button>
+                    <button type="submit" class="btn-blue">Войти</button>
+                </div>
+            </form>
+            <span class="auth-switch" onclick="switchAuthMode('reg')">Ещё нет аккаунта? Зарегистрироваться</span>
+        </div>
+
+        <div id="regBlock" style="display: none;">
+            <h3 style="color: var(--accent-blue); margin-top: 0;">Регистрация</h3>
+            <form id="regForm">
+                <div class="form-group">
+                    <label>Придумайте Никнейм</label>
+                    <input type="text" id="regNick" placeholder="Vlada_Wong" required>
+                </div>
+                <div class="form-group">
+                    <label>Придумайте Пароль</label>
+                    <input type="password" id="regPass" placeholder="••••••••" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal('authModal')">Отмена</button>
+                    <button type="submit" class="btn-blue">Создать аккаунт</button>
+                </div>
+            </form>
+            <span class="auth-switch" onclick="switchAuthMode('login')">Уже есть аккаунт? Войти</span>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="topicModal">
+    <div class="modal-content">
+        <h3 style="color: var(--accent-blue); margin-top: 0;">Создать новую тему</h3>
+        <form id="createTopicForm">
+            <div class="form-group">
+                <label>Заголовок темы</label>
+                <input type="text" id="topicTitleInput" placeholder="Например: [Отчет] Проведение тренировки" required>
+            </div>
+            <div class="form-group">
+                <label>Текст темы / Доказательства</label>
+                <textarea id="topicBodyInput" rows="5" placeholder="Опишите вашу тему..." required></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeModal('topicModal')">Отмена</button>
+                <button type="submit" class="btn-blue">Опубликовать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="editPostModal">
+    <div class="modal-content">
+        <h3 style="color: var(--accent-blue); margin-top: 0;">Редактировать сообщение</h3>
+        <form id="editPostForm">
+            <div class="form-group" id="editTopicTitleGroup" style="display:none;">
+                <label>Заголовок темы</label>
+                <input type="text" id="editTopicTitleInput">
+            </div>
+            <div class="form-group">
+                <label>Текст сообщения</label>
+                <textarea id="editPostTextInput" rows="8" required></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeModal('editPostModal')">Отмена</button>
+                <button type="submit" class="btn-blue">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="editProfileModal">
+    <div class="modal-content">
+        <h3 style="color: var(--accent-blue); margin-top: 0;">Редактирование профиля</h3>
+        <form id="editProfileForm">
+            <div class="form-group">
+                <label>Должность / Ранг</label>
+                <input type="text" id="editRank" placeholder="Например: Инструктор">
+            </div>
+            <div class="form-group">
+                <label>Ссылка на Аватарку (URL)</label>
+                <input type="url" id="editAvatar" placeholder="https://i.imgur.com/example.png">
+            </div>
+            <div class="form-group">
+                <label>Статус / Подпись</label>
+                <input type="text" id="editStatus" placeholder="Например: Работаю на благо штата">
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeModal('editProfileModal')">Отмена</button>
+                <button type="submit" class="btn-blue">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentUser = JSON.parse(localStorage.getItem('forum_current_user')) || null;
+    let profiles = JSON.parse(localStorage.getItem('forum_profiles')) || {};
+    let topics = JSON.parse(localStorage.getItem('forum_topics')) || [];
+    let currentTopicId = null;
+    let editingPostIndex = null;
+
+    function saveAll() {
+        localStorage.setItem('forum_topics', JSON.stringify(topics));
+        localStorage.setItem('forum_profiles', JSON.stringify(profiles));
+        localStorage.setItem('forum_current_user', JSON.stringify(currentUser));
+    }
+
+    function isVlada(nick) {
+        return nick && nick.toLowerCase() === 'vlada_wong';
+    }
+
+    function isAdmin() {
+        if (!currentUser) return false;
+        if (isVlada(currentUser)) return true;
+        return profiles[currentUser] && profiles[currentUser].role === 'admin';
+    }
+
+    function renderUserNav() {
+        const nav = document.getElementById('userNav');
+        if (currentUser) {
+            const userProf = profiles[currentUser] || { rank: "Инструктор", avatar: "" };
+            const avatarSrc = userProf.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser}`;
+            const nickClass = isVlada(currentUser) ? 'vip-nick' : '';
+
+            nav.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="showProfilePage('${currentUser}')">
+                    <img src="${avatarSrc}" style="width:30px; height:30px; border-radius:50%; border:1px solid var(--accent-blue);">
+                    <span class="${nickClass}" style="font-size:14px; font-weight:bold;">${currentUser}</span>
+                </div>
+                <button class="user-nav-btn" onclick="logout()">Выйти</button>
+            `;
+        } else {
+            nav.innerHTML = `<button class="user-nav-btn" onclick="openModal('authModal')">Вход / Регистрация</button>`;
+        }
+    }
+
+    function renderTopics() {
+        const container = document.getElementById('topicsContainer');
+        container.innerHTML = '';
+
+        if (topics.length === 0) {
+            container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted);">Тем пока нет. Создайте первую!</div>`;
+            return;
+        }
+
+        topics.forEach(topic => {
+            const nickClass = isVlada(topic.authorNick) ? 'vip-nick' : '';
+            const row = document.createElement('div');
+            row.className = 'topic-row';
+            row.onclick = () => openTopic(topic.id);
+            row.innerHTML = `
+                <div class="topic-icon">📄</div>
+                <div class="topic-main">
+                    <span class="topic-title">${topic.title}</span>
+                    <div class="topic-meta">Автор: <span class="${nickClass}" style="color: var(--accent-blue);">${topic.authorNick}</span> | ${topic.date}</div>
+                </div>
+                <div class="topic-meta">Ответов: ${topic.posts.length - 1}</div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function openTopic(id) {
+        currentTopicId = id;
+        const topic = topics.find(t => t.id === id);
+
+        hideAllPages();
+        document.getElementById('topicPage').style.display = 'block';
+        document.getElementById('viewTopicTitle').innerText = topic.title;
+        document.getElementById('breadcrumbCurrent').innerText = topic.title;
+
+        document.getElementById('deleteTopicBtn').style.display = isAdmin() ? 'inline-block' : 'none';
+
+        renderPosts(topic);
+    }
+
+    function renderPosts(topic) {
+        const container = document.getElementById('postsContainer');
+        container.innerHTML = '';
+
+        topic.posts.forEach((post, index) => {
+            const prof = profiles[post.authorNick] || {
+                rank: "Инструктор",
+                avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${post.authorNick}`
+            };
+
+            const avatarSrc = prof.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${post.authorNick}`;
+            const nickClass = isVlada(post.authorNick) ? 'vip-nick' : '';
+            const displayRank = prof.rank || 'Инструктор';
+
+            const canEdit = currentUser && (currentUser === post.authorNick || isAdmin());
+            const editBtn = canEdit ? `<button class="btn-edit" onclick="openEditPostModal(${index})">✏️ Редактировать</button>` : '';
+
+            const deletePostBtn = (isAdmin() && index > 0) 
+                ? `<button class="btn-danger" onclick="deletePost(${index})">Удалить</button>` 
+                : '';
+
+            const postCard = document.createElement('div');
+            postCard.className = 'post-card';
+            postCard.innerHTML = `
+                <div class="post-author">
+                    <img src="${avatarSrc}" class="avatar">
+                    <div class="${nickClass}" style="font-weight: bold; font-size: 14px; cursor:pointer;" onclick="showProfilePage('${post.authorNick}')">${post.authorNick}</div>
+                    <div class="rank-badge">${displayRank}</div>
+                </div>
+                <div class="post-content">
+                    <div class="post-header">
+                        <span>#${index + 1} | ${post.date}</span>
+                        <div>${editBtn}${deletePostBtn}</div>
+                    </div>
+                    <div>${post.text.replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+            container.appendChild(postCard);
+        });
+    }
+
+    function openEditPostModal(postIndex) {
+        editingPostIndex = postIndex;
+        const topic = topics.find(t => t.id === currentTopicId);
+        const post = topic.posts[postIndex];
+
+        document.getElementById('editPostTextInput').value = post.text;
+
+        const titleGroup = document.getElementById('editTopicTitleGroup');
+        if (postIndex === 0) {
+            titleGroup.style.display = 'block';
+            document.getElementById('editTopicTitleInput').value = topic.title;
+        } else {
+            titleGroup.style.display = 'none';
+        }
+
+        openModal('editPostModal');
+    }
+
+    document.getElementById('editPostForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const topic = topics.find(t => t.id === currentTopicId);
+        const newText = document.getElementById('editPostTextInput').value;
+
+        topic.posts[editingPostIndex].text = newText;
+
+        if (editingPostIndex === 0) {
+            const newTitle = document.getElementById('editTopicTitleInput').value;
+            topic.title = newTitle;
+            document.getElementById('viewTopicTitle').innerText = newTitle;
+        }
+
+        saveAll();
+        closeModal('editPostModal');
+        renderPosts(topic);
+    });
+
+    function deleteCurrentTopic() {
+        if (!isAdmin()) return;
+        if (confirm("Вы уверены, что хотите удалить эту тему?")) {
+            topics = topics.filter(t => t.id !== currentTopicId);
+            saveAll();
+            showMainPage();
+        }
+    }
+
+    function deletePost(postIndex) {
+        if (!isAdmin()) return;
+        if (confirm("Удалить этот ответ?")) {
+            const topic = topics.find(t => t.id === currentTopicId);
+            topic.posts.splice(postIndex, 1);
+            saveAll();
+            renderPosts(topic);
+        }
+    }
+
+    function showProfilePage(nick) {
+        const prof = profiles[nick] || {
+            rank: "Инструктор",
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`,
+            status: "Статус отсутствует",
+            regDate: "Сегодня"
+        };
+
+        hideAllPages();
+        document.getElementById('profilePage').style.display = 'block';
+        document.getElementById('breadcrumbCurrent').innerText = `Профиль ${nick}`;
+
+        const profNickElem = document.getElementById('profNick');
+        profNickElem.innerText = nick;
+        profNickElem.className = isVlada(nick) ? 'vip-nick' : '';
+
+        document.getElementById('profRank').innerText = prof.rank || "Инструктор";
+        document.getElementById('profStatus').innerText = `"${prof.status || 'Статус отсутствует'}"`;
+        document.getElementById('profRegDate').innerText = prof.regDate || "Сегодня";
+        document.getElementById('profImg').src = prof.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`;
+        
+        document.getElementById('editProfileBtn').style.display = (currentUser === nick) ? 'inline-block' : 'none';
+    }
+
+    function hideAllPages() {
+        document.getElementById('mainPage').style.display = 'none';
+        document.getElementById('topicPage').style.display = 'none';
+        document.getElementById('profilePage').style.display = 'none';
+    }
+
+    function showMainPage() {
+        hideAllPages();
+        document.getElementById('mainPage').style.display = 'block';
+        document.getElementById('breadcrumbCurrent').innerText = "Раздел Инструкторов";
+        renderTopics();
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function switchAuthMode(mode) {
+        if(mode === 'reg') {
+            document.getElementById('loginBlock').style.display = 'none';
+            document.getElementById('regBlock').style.display = 'block';
+        } else {
+            document.getElementById('regBlock').style.display = 'none';
+            document.getElementById('loginBlock').style.display = 'block';
+        }
+    }
+
+    document.getElementById('regForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nick = document.getElementById('regNick').value.trim();
+        const pass = document.getElementById('regPass').value.trim();
+
+        if (profiles[nick]) {
+            alert("Пользователь с таким ником уже существует!");
+            return;
+        }
+
+        const isVladaUser = isVlada(nick);
+
+        profiles[nick] = {
+            password: pass,
+            role: isVladaUser ? 'admin' : 'user',
+            rank: 'Инструктор',
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`,
+            status: 'Участник форума',
+            regDate: new Date().toLocaleDateString()
+        };
+
+        currentUser = nick;
+        saveAll();
+        renderUserNav();
+        closeModal('authModal');
+        this.reset();
+        alert("Регистрация успешна!");
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nick = document.getElementById('loginNick').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+
+        if (!profiles[nick]) {
+            alert("Пользователь не найден!");
+            return;
+        }
+
+        if (profiles[nick].password !== pass) {
+            alert("Неверный пароль!");
+            return;
+        }
+
+        if (isVlada(nick)) {
+            profiles[nick].role = 'admin';
+            if (profiles[nick].rank === 'АДМИНИСТРАТОР') {
+                profiles[nick].rank = 'Инструктор';
+            }
+        }
+
+        currentUser = nick;
+        saveAll();
+        renderUserNav();
+        closeModal('authModal');
+        this.reset();
+    });
+
+    function logout() {
+        currentUser = null;
+        saveAll();
+        renderUserNav();
+        showMainPage();
+    }
+
+    document.getElementById('createTopicForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!currentUser) {
+            alert("Сначала войдите в свой аккаунт!");
+            openModal('authModal');
+            return;
+        }
+
+        const title = document.getElementById('topicTitleInput').value;
+        const text = document.getElementById('topicBodyInput').value;
+
+        const newTopic = {
+            id: Date.now(),
+            title: title,
+            authorNick: currentUser,
+            date: "Только что",
+            posts: [{ authorNick: currentUser, date: "Только что", text: text }]
+        };
+
+        topics.unshift(newTopic);
+        saveAll();
+        closeModal('topicModal');
+        this.reset();
+        renderTopics();
+    });
+
+    document.getElementById('replyForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!currentUser) {
+            alert("Сначала войдите в свой аккаунт!");
+            openModal('authModal');
+            return;
+        }
+
+        const text = document.getElementById('replyText').value;
+        const topic = topics.find(t => t.id === currentTopicId);
+
+        topic.posts.push({ authorNick: currentUser, date: "Только что", text: text });
+        saveAll();
+        this.reset();
+        renderPosts(topic);
+    });
+
+    document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        const rank = document.getElementById('editRank').value;
+        const avatar = document.getElementById('editAvatar').value;
+        const status = document.getElementById('editStatus').value;
+
+        if (rank) profiles[currentUser].rank = rank;
+        if (avatar) profiles[currentUser].avatar = avatar;
+        if (status) profiles[currentUser].status = status;
+
+        saveAll();
+        closeModal('editProfileModal');
+        showProfilePage(currentUser);
+        renderUserNav();
+    });
+
+    renderUserNav();
+    renderTopics();
+</script>
+
+</body>
+</html>
