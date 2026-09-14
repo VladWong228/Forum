@@ -367,6 +367,20 @@
         return isVlad(currentUser);
     }
 
+    function createDefaultProfile(nick, pass = "123456") {
+        const isVladUser = isVlad(nick);
+        const newProf = {
+            password: pass,
+            role: isVladUser ? 'admin' : 'user',
+            rank: isVladUser ? 'АДМИНИСТРАТОР' : 'Инструктор',
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`,
+            status: 'Участник форума',
+            regDate: new Date().toLocaleDateString()
+        };
+        db.ref('profiles/' + nick).set(newProf);
+        return newProf;
+    }
+
     db.ref('profiles').on('value', snapshot => {
         profiles = snapshot.val() || {};
         renderUserNav();
@@ -385,14 +399,13 @@
     function renderUserNav() {
         const nav = document.getElementById('userNav');
         if (currentUser) {
-            const avatarSrc = (profiles[currentUser] && profiles[currentUser].avatar) 
-                ? profiles[currentUser].avatar 
-                : `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser}`;
+            const userProf = profiles[currentUser] || {};
+            const avatarSrc = userProf.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser}`;
             const nickClass = isVlad(currentUser) ? 'vip-nick' : '';
 
             nav.innerHTML = `
                 <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="showProfilePage('${currentUser}')">
-                    <img src="${avatarSrc}" style="width:30px; height:30px; border-radius:50%; border:1px solid var(--accent-blue);">
+                    <img src="${avatarSrc}" style="width:30px; height:30px; border-radius:50%; border:1px solid var(--accent-blue); object-fit:cover;">
                     <span class="${nickClass}" style="font-size:14px; font-weight:bold;">${currentUser}</span>
                 </div>
                 <button class="user-nav-btn" onclick="logout()">Выйти</button>
@@ -534,8 +547,13 @@
     }
 
     function showProfilePage(nick) {
+        let prof = profiles[nick];
+        
+        if (!prof) {
+            prof = createDefaultProfile(nick);
+        }
+
         const isUserVlad = isVlad(nick);
-        const prof = profiles[nick] || {};
 
         hideAllPages();
         document.getElementById('profilePage').style.display = 'block';
@@ -590,18 +608,7 @@
             return;
         }
 
-        const isVladUser = isVlad(nick);
-
-        const newProfile = {
-            password: pass,
-            role: isVladUser ? 'admin' : 'user',
-            rank: isVladUser ? 'АДМИНИСТРАТОР' : 'Инструктор',
-            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${nick}`,
-            status: 'Участник форума',
-            regDate: new Date().toLocaleDateString()
-        };
-
-        db.ref('profiles/' + nick).set(newProfile);
+        createDefaultProfile(nick, pass);
         currentUser = nick;
         localStorage.setItem('forum_current_user', currentUser);
         renderUserNav();
@@ -616,11 +623,11 @@
         const pass = document.getElementById('loginPass').value.trim();
 
         if (!profiles[nick]) {
-            alert("Пользователь не найден!");
+            alert("Пользователь не найден! Пройдите регистрацию.");
             return;
         }
 
-        if (profiles[nick].password !== pass) {
+        if (profiles[nick].password && profiles[nick].password !== pass) {
             alert("Неверный пароль!");
             return;
         }
